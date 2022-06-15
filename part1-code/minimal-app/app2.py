@@ -1,9 +1,9 @@
 import lightning as L
 
 
-class WordComponent1(L.LightningWork):
+class WordComponent(L.LightningWork):
     def __init__(self, word):
-        super().__init__(run_once=False, parallel=True)
+        super().__init__(parallel=True, cache_calls=False)
         self.word = word
 
     def run(self):
@@ -11,22 +11,21 @@ class WordComponent1(L.LightningWork):
 
 
 class MyRootComponent(L.LightningFlow):
-    def __init__(self) -> None:
+    def __init__(self):
         super().__init__()
-        self.hello = WordComponent1("hello")
-        self.world = WordComponent1("world")
-
+        self.hello = WordComponent("Hello")
+        self.world = WordComponent("World")
         self.counter = 0
 
     def run(self):
         self.counter += 1
-        if self.counter < 6:
-            print("Hey, I am swimming in the LightningFlow!")
+        if self.counter <= 6:
+            print("I just go with the Flow!")
         self.hello.run()
         self.world.run()
 
 
 app = L.LightningApp(MyRootComponent())
 
-# run as
+# run this app via the following command:
 # lightning run app app.py
