@@ -13,20 +13,19 @@ class WordComponent1(L.LightningWork):
 class MyRootComponent(L.LightningFlow):
     def __init__(self) -> None:
         super().__init__()
-        self.hello = WordComponent1("hello")
-        self.world = WordComponent1("world")
-
+        self.hello = WordComponent1("Hello")
+        self.world = WordComponent1("World")
         self.counter = 0
 
     def run(self):
         self.counter += 1
-        if self.counter < 6:
-            print("Hey, I am swimming in the LightningFlow!")
+        if self.counter <= 6:
+            print("I just go with the Flow!")
         self.hello.run()
         self.world.run()
 
 
 app = L.LightningApp(MyRootComponent())
 
-# run as
+# run this app via the following command:
 # lightning run app app.py
