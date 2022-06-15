@@ -2,6 +2,7 @@ import cv2
 import gradio as gr
 
 # From local directory:
+# From local directory:
 import imgproc
 import lightning as L
 import numpy as np
@@ -9,7 +10,7 @@ import streamlit as st
 import torch
 import torchvision.transforms as T
 from lightning.app.components.serve import ServeGradio
-from lightning_app.frontend import StreamlitFrontend
+from lightning.app.frontend import StreamlitFrontend
 from model import Generator
 
 
@@ -19,8 +20,8 @@ class SRGAN(ServeGradio):
     outputs = gr.outputs.Image(type="pil")  # required
     examples = [["./examples/comic_lr.png"]]  # required
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self):
+        super().__init__()
         self.ready = False  # required
 
     def predict(self, img):
@@ -75,6 +76,7 @@ class SRGAN(ServeGradio):
 
         # Load the SRGAN model weights
         checkpoint = torch.load(WEIGHTS_PATH, map_location=lambda storage, loc: storage)
+
         model.load_state_dict(checkpoint["state_dict"])
         print(f"Load SRGAN model weights `{WEIGHTS_PATH}` successfully.")
 
@@ -110,7 +112,8 @@ class ChildFlow(L.LightningFlow):
 class RootFlow(L.LightningFlow):
     def __init__(self):
         super().__init__()
-        self.demo = SRGAN(cloud_compute=L.CloudCompute("cpu", 1))
+
+        self.demo = SRGAN()
         self.about_page = ChildFlow()
 
     def run(self):

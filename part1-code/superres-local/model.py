@@ -17,7 +17,11 @@ from torch.nn import functional as F
 from torchvision import models, transforms
 from torchvision.models.feature_extraction import create_feature_extractor
 
-__all__ = ["ResidualConvBlock", "Discriminator", "Generator", "ContentLoss"]
+__all__ = [
+    "ResidualConvBlock",
+    "Discriminator", "Generator",
+    "ContentLoss"
+]
 
 
 class ResidualConvBlock(nn.Module):
@@ -176,30 +180,23 @@ class ContentLoss(nn.Module):
         -`ESRGAN: Enhanced Super-Resolution Generative Adversarial Networks                    <https://arxiv.org/pdf/1809.00219.pdf>` paper.
         -`Perceptual Extreme Super Resolution Network with Receptive Field Block               <https://arxiv.org/pdf/2005.12597.pdf>` paper.
 
-    """
+     """
 
-    def __init__(
-        self,
-        feature_model_extractor_node: str,
-        feature_model_normalize_mean: list,
-        feature_model_normalize_std: list,
-    ) -> None:
+    def __init__(self, feature_model_extractor_node: str,
+                 feature_model_normalize_mean: list,
+                 feature_model_normalize_std: list) -> None:
         super(ContentLoss, self).__init__()
         # Get the name of the specified feature extraction node
         self.feature_model_extractor_node = feature_model_extractor_node
         # Load the VGG19 model trained on the ImageNet dataset.
         model = models.vgg19(True)
         # Extract the thirty-sixth layer output in the VGG19 model as the content loss.
-        self.feature_extractor = create_feature_extractor(
-            model, [feature_model_extractor_node]
-        )
+        self.feature_extractor = create_feature_extractor(model, [feature_model_extractor_node])
         # set to validation mode
         self.feature_extractor.eval()
 
         # The preprocessing method of the input data. This is the VGG model preprocessing method of the ImageNet dataset.
-        self.normalize = transforms.Normalize(
-            feature_model_normalize_mean, feature_model_normalize_std
-        )
+        self.normalize = transforms.Normalize(feature_model_normalize_mean, feature_model_normalize_std)
 
         # Freeze model parameters.
         for model_parameters in self.feature_extractor.parameters():
@@ -210,12 +207,8 @@ class ContentLoss(nn.Module):
         sr_tensor = self.normalize(sr_tensor)
         hr_tensor = self.normalize(hr_tensor)
 
-        sr_feature = self.feature_extractor(sr_tensor)[
-            self.feature_model_extractor_node
-        ]
-        hr_feature = self.feature_extractor(hr_tensor)[
-            self.feature_model_extractor_node
-        ]
+        sr_feature = self.feature_extractor(sr_tensor)[self.feature_model_extractor_node]
+        hr_feature = self.feature_extractor(hr_tensor)[self.feature_model_extractor_node]
 
         # Find the feature map difference between the two images
         content_loss = F.mse_loss(sr_feature, hr_feature)

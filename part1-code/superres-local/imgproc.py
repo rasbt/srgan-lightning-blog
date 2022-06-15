@@ -21,21 +21,11 @@ import torch
 from torchvision.transforms import functional as F
 
 __all__ = [
-    "image2tensor",
-    "tensor2image",
+    "image2tensor", "tensor2image",
     "image_resize",
-    "expand_y",
-    "rgb2ycbcr",
-    "bgr2ycbcr",
-    "ycbcr2bgr",
-    "ycbcr2rgb",
-    "rgb2ycbcr_torch",
-    "bgr2ycbcr_torch",
-    "center_crop",
-    "random_crop",
-    "random_rotate",
-    "random_vertically_flip",
-    "random_horizontally_flip",
+    "expand_y", "rgb2ycbcr", "bgr2ycbcr", "ycbcr2bgr", "ycbcr2rgb",
+    "rgb2ycbcr_torch", "bgr2ycbcr_torch",
+    "center_crop", "random_crop", "random_rotate", "random_vertically_flip", "random_horizontally_flip",
 ]
 
 
@@ -90,15 +80,7 @@ def tensor2image(tensor: torch.Tensor, range_norm: bool, half: bool) -> Any:
     if half:
         tensor = tensor.half()
 
-    image = (
-        tensor.squeeze(0)
-        .permute(1, 2, 0)
-        .mul(255)
-        .clamp(0, 255)
-        .cpu()
-        .numpy()
-        .astype("uint8")
-    )
+    image = tensor.squeeze(0).permute(1, 2, 0).mul(255).clamp(0, 255).cpu().numpy().astype("uint8")
 
     return image
 
@@ -115,17 +97,19 @@ def _cubic(x: Any) -> Any:
 
     """
     absx = torch.abs(x)
-    absx2 = absx**2
-    absx3 = absx**3
+    absx2 = absx ** 2
+    absx3 = absx ** 3
     return (1.5 * absx3 - 2.5 * absx2 + 1) * ((absx <= 1).type_as(absx)) + (
-        -0.5 * absx3 + 2.5 * absx2 - 4 * absx + 2
-    ) * (((absx > 1) * (absx <= 2)).type_as(absx))
+            -0.5 * absx3 + 2.5 * absx2 - 4 * absx + 2) * (
+               ((absx > 1) * (absx <= 2)).type_as(absx))
 
 
 # Code reference `https://github.com/xinntao/BasicSR/blob/master/basicsr/utils/matlab_functions.py`
-def _calculate_weights_indices(
-    in_length: int, out_length: int, scale: float, kernel_width: int, antialiasing: bool
-) -> [np.ndarray, np.ndarray, int, int]:
+def _calculate_weights_indices(in_length: int,
+                               out_length: int,
+                               scale: float,
+                               kernel_width: int,
+                               antialiasing: bool) -> [np.ndarray, np.ndarray, int, int]:
     """Implementation of `calculate_weights_indices` function in Matlab under Python language.
 
     Args:
@@ -164,9 +148,8 @@ def _calculate_weights_indices(
 
     # The indices of the input pixels involved in computing the k-th output
     # pixel are in row k of the indices matrix.
-    indices = left.view(out_length, 1).expand(out_length, p) + torch.linspace(
-        0, p - 1, p
-    ).view(1, p).expand(out_length, p)
+    indices = left.view(out_length, 1).expand(out_length, p) + torch.linspace(0, p - 1, p).view(1, p).expand(
+        out_length, p)
 
     # The weights used to compute the k-th output pixel are in row k of the
     # weights matrix.
@@ -231,12 +214,10 @@ def image_resize(image: Any, scale_factor: float, antialiasing: bool = True) -> 
     kernel_width = 4
 
     # get weights and indices
-    weights_h, indices_h, sym_len_hs, sym_len_he = _calculate_weights_indices(
-        in_h, out_h, scale_factor, kernel_width, antialiasing
-    )
-    weights_w, indices_w, sym_len_ws, sym_len_we = _calculate_weights_indices(
-        in_w, out_w, scale_factor, kernel_width, antialiasing
-    )
+    weights_h, indices_h, sym_len_hs, sym_len_he = _calculate_weights_indices(in_h, out_h, scale_factor, kernel_width,
+                                                                              antialiasing)
+    weights_w, indices_w, sym_len_ws, sym_len_we = _calculate_weights_indices(in_w, out_w, scale_factor, kernel_width,
+                                                                              antialiasing)
     # process H dimension
     # symmetric copying
     img_aug = torch.FloatTensor(in_c, in_h + sym_len_hs + sym_len_he, in_w)
@@ -257,9 +238,7 @@ def image_resize(image: Any, scale_factor: float, antialiasing: bool = True) -> 
     for i in range(out_h):
         idx = int(indices_h[i][0])
         for j in range(in_c):
-            out_1[j, i, :] = (
-                img_aug[j, idx : idx + kernel_width, :].transpose(0, 1).mv(weights_h[i])
-            )
+            out_1[j, i, :] = img_aug[j, idx:idx + kernel_width, :].transpose(0, 1).mv(weights_h[i])
 
     # process W dimension
     # symmetric copying
@@ -281,7 +260,7 @@ def image_resize(image: Any, scale_factor: float, antialiasing: bool = True) -> 
     for i in range(out_w):
         idx = int(indices_w[i][0])
         for j in range(in_c):
-            out_2[j, :, i] = out_1_aug[j, :, idx : idx + kernel_width].mv(weights_w[i])
+            out_2[j, :, i] = out_1_aug[j, :, idx:idx + kernel_width].mv(weights_w[i])
 
     if squeeze_flag:
         out_2 = out_2.squeeze(0)
@@ -305,7 +284,7 @@ def expand_y(image: np.ndarray) -> np.ndarray:
 
     """
     # Normalize image data to [0, 1]
-    image = image.astype(np.float32) / 255.0
+    image = image.astype(np.float32) / 255.
 
     # Convert BGR to YCbCr, and extract only Y channel
     y_image = bgr2ycbcr(image, only_use_y_channel=True)
@@ -334,16 +313,10 @@ def rgb2ycbcr(image: np.ndarray, only_use_y_channel: bool) -> np.ndarray:
     if only_use_y_channel:
         image = np.dot(image, [65.481, 128.553, 24.966]) + 16.0
     else:
-        image = np.matmul(
-            image,
-            [
-                [65.481, -37.797, 112.0],
-                [128.553, -74.203, -93.786],
-                [24.966, 112.0, -18.214],
-            ],
-        ) + [16, 128, 128]
+        image = np.matmul(image, [[65.481, -37.797, 112.0], [128.553, -74.203, -93.786], [24.966, 112.0, -18.214]]) + [
+            16, 128, 128]
 
-    image /= 255.0
+    image /= 255.
     image = image.astype(np.float32)
 
     return image
@@ -364,16 +337,10 @@ def bgr2ycbcr(image: np.ndarray, only_use_y_channel: bool) -> np.ndarray:
     if only_use_y_channel:
         image = np.dot(image, [24.966, 128.553, 65.481]) + 16.0
     else:
-        image = np.matmul(
-            image,
-            [
-                [24.966, 112.0, -18.214],
-                [128.553, -74.203, -93.786],
-                [65.481, -37.797, 112.0],
-            ],
-        ) + [16, 128, 128]
+        image = np.matmul(image, [[24.966, 112.0, -18.214], [128.553, -74.203, -93.786], [65.481, -37.797, 112.0]]) + [
+            16, 128, 128]
 
-    image /= 255.0
+    image /= 255.
     image = image.astype(np.float32)
 
     return image
@@ -391,18 +358,13 @@ def ycbcr2rgb(image: np.ndarray) -> np.ndarray:
 
     """
     image_dtype = image.dtype
-    image *= 255.0
+    image *= 255.
 
-    image = np.matmul(
-        image,
-        [
-            [0.00456621, 0.00456621, 0.00456621],
-            [0, -0.00153632, 0.00791071],
-            [0.00625893, -0.00318811, 0],
-        ],
-    ) * 255.0 + [-222.921, 135.576, -276.836]
+    image = np.matmul(image, [[0.00456621, 0.00456621, 0.00456621],
+                              [0, -0.00153632, 0.00791071],
+                              [0.00625893, -0.00318811, 0]]) * 255.0 + [-222.921, 135.576, -276.836]
 
-    image /= 255.0
+    image /= 255.
     image = image.astype(image_dtype)
 
     return image
@@ -420,18 +382,13 @@ def ycbcr2bgr(image: np.ndarray) -> np.ndarray:
 
     """
     image_dtype = image.dtype
-    image *= 255.0
+    image *= 255.
 
-    image = np.matmul(
-        image,
-        [
-            [0.00456621, 0.00456621, 0.00456621],
-            [0.00791071, -0.00153632, 0],
-            [0, -0.00318811, 0.00625893],
-        ],
-    ) * 255.0 + [-276.836, 135.576, -222.921]
+    image = np.matmul(image, [[0.00456621, 0.00456621, 0.00456621],
+                              [0.00791071, -0.00153632, 0],
+                              [0, -0.00318811, 0.00625893]]) * 255.0 + [-276.836, 135.576, -222.921]
 
-    image /= 255.0
+    image /= 255.
     image = image.astype(image_dtype)
 
     return image
@@ -452,23 +409,15 @@ def rgb2ycbcr_torch(tensor: torch.Tensor, only_use_y_channel: bool) -> torch.Ten
     """
     if only_use_y_channel:
         weight = torch.Tensor([[65.481], [128.553], [24.966]]).to(tensor)
-        tensor = (
-            torch.matmul(tensor.permute(0, 2, 3, 1), weight).permute(0, 3, 1, 2) + 16.0
-        )
+        tensor = torch.matmul(tensor.permute(0, 2, 3, 1), weight).permute(0, 3, 1, 2) + 16.0
     else:
-        weight = torch.Tensor(
-            [
-                [65.481, -37.797, 112.0],
-                [128.553, -74.203, -93.786],
-                [24.966, 112.0, -18.214],
-            ]
-        ).to(tensor)
+        weight = torch.Tensor([[65.481, -37.797, 112.0],
+                               [128.553, -74.203, -93.786],
+                               [24.966, 112.0, -18.214]]).to(tensor)
         bias = torch.Tensor([16, 128, 128]).view(1, 3, 1, 1).to(tensor)
-        tensor = (
-            torch.matmul(tensor.permute(0, 2, 3, 1), weight).permute(0, 3, 1, 2) + bias
-        )
+        tensor = torch.matmul(tensor.permute(0, 2, 3, 1), weight).permute(0, 3, 1, 2) + bias
 
-    tensor /= 255.0
+    tensor /= 255.
 
     return tensor
 
@@ -488,23 +437,15 @@ def bgr2ycbcr_torch(tensor: torch.Tensor, only_use_y_channel: bool) -> torch.Ten
     """
     if only_use_y_channel:
         weight = torch.Tensor([[24.966], [128.553], [65.481]]).to(tensor)
-        tensor = (
-            torch.matmul(tensor.permute(0, 2, 3, 1), weight).permute(0, 3, 1, 2) + 16.0
-        )
+        tensor = torch.matmul(tensor.permute(0, 2, 3, 1), weight).permute(0, 3, 1, 2) + 16.0
     else:
-        weight = torch.Tensor(
-            [
-                [24.966, 112.0, -18.214],
-                [128.553, -74.203, -93.786],
-                [65.481, -37.797, 112.0],
-            ]
-        ).to(tensor)
+        weight = torch.Tensor([[24.966, 112.0, -18.214],
+                               [128.553, -74.203, -93.786],
+                               [65.481, -37.797, 112.0]]).to(tensor)
         bias = torch.Tensor([16, 128, 128]).view(1, 3, 1, 1).to(tensor)
-        tensor = (
-            torch.matmul(tensor.permute(0, 2, 3, 1), weight).permute(0, 3, 1, 2) + bias
-        )
+        tensor = torch.matmul(tensor.permute(0, 2, 3, 1), weight).permute(0, 3, 1, 2) + bias
 
-    tensor /= 255.0
+    tensor /= 255.
 
     return tensor
 
@@ -527,7 +468,7 @@ def center_crop(image: np.ndarray, image_size: int) -> np.ndarray:
     left = (image_width - image_size) // 2
 
     # Crop image patch
-    patch_image = image[top : top + image_size, left : left + image_size, ...]
+    patch_image = image[top:top + image_size, left:left + image_size, ...]
 
     return patch_image
 
@@ -550,12 +491,15 @@ def random_crop(image: np.ndarray, image_size: int) -> np.ndarray:
     left = random.randint(0, image_width - image_size)
 
     # Crop image patch
-    patch_image = image[top : top + image_size, left : left + image_size, ...]
+    patch_image = image[top:top + image_size, left:left + image_size, ...]
 
     return patch_image
 
 
-def random_rotate(image, angles, center=None, scale_factor=1.0):
+def random_rotate(image,
+                  angles,
+                  center=None,
+                  scale_factor=1.0):
     """Rotate an image by a random angle
 
     Args:
