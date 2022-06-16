@@ -1,8 +1,7 @@
 import cv2
 import gradio as gr
 
-# From local directory:
-# From local directory:
+# Local files:
 import imgproc
 import lightning as L
 import numpy as np
@@ -18,7 +17,7 @@ class SRGAN(ServeGradio):
 
     inputs = gr.inputs.Image(type="pil", label="Select an input image")  # required
     outputs = gr.outputs.Image(type="pil")  # required
-    examples = [["./examples/comic_lr.png"]]  # required
+    examples = ["./examples/comic_lr.png"]  # required
 
     def __init__(self):
         super().__init__()
@@ -26,6 +25,9 @@ class SRGAN(ServeGradio):
 
     def predict(self, img):
 
+        DEVICE = torch.device("cpu")
+
+        # resize image
         height, width = img.size
         print("Original size:", height, width)
         max_size = max(height, width)
@@ -37,28 +39,17 @@ class SRGAN(ServeGradio):
         new_height, new_width = img.size
         print("Resized size:", new_height, new_width)
 
-        DEVICE = torch.device("cpu")
-        # Read LR image and HR image
-
-        # convert PIL to open cv
+        # convert image to tensor
         opencv_image = np.array(img)
         opencv_image = opencv_image[:, :, ::-1].copy()
         lr_image = opencv_image.astype(np.float32) / 255.0
-
-        # Convert BGR channel image format data to
-        # RGB channel image format data
         lr_image = cv2.cvtColor(lr_image, cv2.COLOR_BGR2RGB)
-
-        # Convert RGB channel image format data to Tensor
-        # channel image format data
         lr_tensor = imgproc.image2tensor(lr_image, False, False).unsqueeze_(0)
-
-        # Transfer Tensor channel image format data to target device
         lr_tensor = lr_tensor.to(device=DEVICE)
 
+        # get upscaled image
         with torch.no_grad():
             sr_tensor = self.model(lr_tensor)
-
         transform = T.ToPILImage()
 
         # Remove batch dimension
@@ -75,12 +66,9 @@ class SRGAN(ServeGradio):
         print("Build SRGAN model successfully.")
 
         # Load the SRGAN model weights
-        checkpoint = torch.load(WEIGHTS_PATH, map_location=lambda storage, loc: storage)
-
+        checkpoint = torch.load(WEIGHTS_PATH)
         model.load_state_dict(checkpoint["state_dict"])
         print(f"Load SRGAN model weights `{WEIGHTS_PATH}` successfully.")
-
-        # Start the verification mode of the model.
         model.eval()
 
         return model
