@@ -1,0 +1,6 @@
+lightning==2022.6.15
+gradio==3.0.12
+opencv-python-headless==4.5.5.64
+streamlit==1.10.0
+torch==1.11
+torchvision==0.12.0
