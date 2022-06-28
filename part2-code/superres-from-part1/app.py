@@ -1,7 +1,5 @@
 import cv2
 import gradio as gr
-
-# Local files:
 import imgproc
 import lightning as L
 import numpy as np
