@@ -102,7 +102,7 @@ class RootFlow(L.LightningFlow):
         super().__init__()
 
         self.demo = SRGAN()
-        self.about_page = ChildFlow()
+        self.about_page = ChildFlow()  # <--
 
     def run(self):
         self.demo.run()
@@ -113,7 +113,7 @@ class RootFlow(L.LightningFlow):
             "name": "SRGAN Paper",
             "content": "https://arxiv.org/pdf/1609.04802v5.pdf",
         }
-        tab_3 = {"name": "About", "content": self.about_page}
+        tab_3 = {"name": "About", "content": self.about_page}  # <--
         return tab_1, tab_2, tab_3
 
 
