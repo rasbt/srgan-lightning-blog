@@ -1,0 +1,10 @@
+2022-06-28 10:51:52,222 [INFO] Device: cpu
+2022-06-28 10:52:06,293 [INFO] Device: cpu
+2022-06-28 10:52:06,675 [INFO] Epoch: 001/001 | Batch: 000/234 | Loss: 2.3056
+2022-06-28 10:52:06,988 [INFO] Epoch: 001/001 | Batch: 050/234 | Loss: 0.2866
+2022-06-28 10:52:07,290 [INFO] Epoch: 001/001 | Batch: 100/234 | Loss: 0.2300
+2022-06-28 10:52:07,594 [INFO] Epoch: 001/001 | Batch: 150/234 | Loss: 0.2535
+2022-06-28 10:52:07,899 [INFO] Epoch: 001/001 | Batch: 200/234 | Loss: 0.2514
+2022-06-28 10:52:08,149 [INFO] Total Training Time: 0.03 min
+2022-06-28 10:52:10,625 [INFO] Training accuracy: 94.51%
+2022-06-28 10:52:10,625 [INFO] Test accuracy: 94.12%
