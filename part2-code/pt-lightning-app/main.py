@@ -6,7 +6,6 @@ import torch
 from my_classifier_template.dataset import Cifar10DataModule
 from my_classifier_template.model import LightningClassifier
 from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning.loggers import CSVLogger
 from torchvision import transforms
 from watermark import watermark
 
@@ -36,7 +35,7 @@ def parse_cmdline_args(parser=None):
 
     parser.add_argument("--num_workers", type=int, default=3)
 
-    parser.add_argument("--output_path", type=str, required=True)
+    parser.add_argument("--output_path", type=str, default="")
 
     parser.add_argument(
         "--pretrained", type=str, choices=("true", "false"), default="false"
@@ -133,14 +132,12 @@ if __name__ == "__main__":
             )  # save top 1 model
         ]
 
-    logger = CSVLogger(save_dir=args.output_path, name="my-model")
-
     trainer = pl.Trainer(
         max_epochs=args.num_epochs,
         callbacks=callbacks,
         accelerator=args.accelerator,
         devices=args.num_devices,
-        logger=logger,
+        default_root_dir=args.output_path,
         strategy=args.strategy,
         precision=args.mixed_precision,
         deterministic=False,
